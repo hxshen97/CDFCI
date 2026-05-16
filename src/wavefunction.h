@@ -21,7 +21,7 @@
 #include <cmath>
 #include "lib/libcuckoo/cuckoohash_map.hh"
 #include "lib/robin_hood/robin_hood.h"
-#include "determinant.h"
+#include "hash.h"
 
 template<int N = 1>
 class WaveFunctionVector
@@ -133,64 +133,6 @@ class WaveFunction
     virtual ~WaveFunction() {};
 };
 
-/* Hash function mapping determinants to size_t */
-// Warning: The following hash functions are naive and just okay to use. They should be replaced with
-// better hash functions.
-// The determinants are represented as an array of size_t integers.
-template<int N>
-struct DeterminantHash {
-    size_t operator() (const Determinant<N>& det) const {
-        throw std::invalid_argument("The DeterminantHash does not support N > 4. Please modify the "
-            "\"DeterminantHash\" class in \"wavefunction.h\" and provide a DeterminantHash.");
-        return 0;
-    }
-};
-
-template<>
-size_t DeterminantHash<1>::operator() (const Determinant<1>& det) const
-{
-    return det.repr[0];
-}
-
-template<>
-size_t DeterminantHash<2>::operator() (const Determinant<2>& det) const
-{
-    return det.repr[0] * 2038076783 + det.repr[1] * 179426549;
-}
-
-template<>
-size_t DeterminantHash<3>::operator() (const Determinant<3>& det) const
-{
-    return det.repr[0] * 2038076783 + det.repr[1] * 179426549 + det.repr[2] * 500002577;
-}
-
-template<>
-size_t DeterminantHash<4>::operator() (const Determinant<4>& det) const
-{
-    return det.repr[0] * 2038076783 + det.repr[1] * 179426549 + det.repr[2] * 500002577 + det.repr[3] * 255477023;
-}
-
-template <int N>
-struct DeterminantHashRobinhood
-{
-    size_t operator()(const Determinant<N> &det) const
-    {
-        DeterminantHash<N> hash1;
-        return (robin_hood::hash_int(hash1(det)));
-    }
-};
-
-template<int N>
-struct DeterminantEqual {
-    bool operator () (const Determinant<N>& det1, const Determinant<N>& det2) const {
-        bool result = true;
-        for (auto i = 0; i < N; ++i)
-        {
-            result = result && (det1.repr[i] == det2.repr[i]);
-        }
-        return result;
-    }
-};
 
 template<int N = 1>
 class WaveFunctionStd : public WaveFunction<N>
